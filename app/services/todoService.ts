@@ -2,6 +2,18 @@ import { FieldValues } from "react-hook-form";
 
 const url = "/api/todo";
 
+const getTodos = async (token: string) => {
+  const config = {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  };
+  const response = await fetch(url, config);
+  const { data } = await response.json();
+  return data;
+};
+
 const postTodo = async (newTodo: FieldValues, token: string) => {
   const config = {
     method: "POST",
@@ -44,4 +56,5 @@ export default {
   post: postTodo,
   delete: deleteTodo,
   edit: editTodo,
+  get: getTodos,
 };

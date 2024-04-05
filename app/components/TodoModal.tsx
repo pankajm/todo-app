@@ -9,9 +9,16 @@ interface Props {
   defaultValues?: FieldValues;
   onConfirm: (todo: FieldValues) => void;
   onClose: () => void;
+  heading?: string;
 }
 
-const TodoModal = ({ onConfirm, onClose, showModal, defaultValues }: Props) => {
+const TodoModal = ({
+  heading = "Add Todo",
+  onConfirm,
+  onClose,
+  showModal,
+  defaultValues,
+}: Props) => {
   const {
     register,
     handleSubmit,
@@ -22,7 +29,7 @@ const TodoModal = ({ onConfirm, onClose, showModal, defaultValues }: Props) => {
     <Modal show={showModal} onHide={onClose}>
       <form onSubmit={handleSubmit(onConfirm)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add Todo</Modal.Title>
+          <Modal.Title>{heading}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <input

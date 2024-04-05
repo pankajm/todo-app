@@ -1,5 +1,6 @@
 body {
   padding: 1rem;
+  background-color: #f0f8ff;
 }
 
 main {
@@ -53,4 +54,10 @@ main {
 
 .table-content {
   margin: 1rem 0;
+}
+
+.signout-text {
+  font-size: 1.4rem;
+  font-weight: 500;
+  cursor: pointer;
 }

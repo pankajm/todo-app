@@ -1,18 +1,28 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 import { FieldValues } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import TodoModal from "../components/TodoModal";
 import Button from "../components/Button";
-import useToddos from "../hooks/useTodos";
 import todoService from "../services/todoService";
 import useStore from "../../store";
 
 const TodoList = () => {
   const [showModal, setShowModal] = useState(false);
   const [editedTodo, setEditedTodo] = useState({});
-  const { todos, refetchTodos } = useToddos();
-  const token = useStore((s) => s.token);
+
+  const { token, updateToken, todos, updateTodos } = useStore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!token) router.push("/");
+    const fetchTodos = async () => {
+      const data = await todoService.get(token);
+      updateTodos(data);
+    };
+    fetchTodos();
+  }, []);
 
   const handleCloseModal = () => {
     setEditedTodo({});
@@ -21,8 +31,8 @@ const TodoList = () => {
 
   const handleAddTodo = async (newTodo: FieldValues) => {
     try {
-      await todoService.post(newTodo, token);
-      refetchTodos();
+      const data = await todoService.post(newTodo, token);
+      updateTodos(data);
       handleCloseModal();
     } catch (ex) {
       // Show UI to user that new todo is not created and
@@ -33,8 +43,8 @@ const TodoList = () => {
 
   const handleDeleteTodo = async (todoId: string) => {
     try {
-      await todoService.delete(todoId, token);
-      refetchTodos();
+      const data = await todoService.delete(todoId, token);
+      updateTodos(data);
     } catch (ex) {
       console.log(ex);
     }
@@ -42,27 +52,48 @@ const TodoList = () => {
 
   const handleEditTodo = async (todo: FieldValues) => {
     try {
-      await todoService.edit(todo, token);
-      refetchTodos();
+      const data = await todoService.edit(todo, token);
+      updateTodos(data);
       handleCloseModal();
     } catch (ex) {
       console.log(ex);
     }
   };
 
+  const onCheckBoxClick = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    todo: FieldValues
+  ) => {
+    todo.done = e.target.checked;
+    const data = await todoService.edit(todo, token);
+    updateTodos(data);
+    // refetchTodos();
+  };
+
   const isEditAction = () => {
     return Object.keys(editedTodo).length;
   };
 
+  const handleSignout = () => {
+    updateToken("");
+    router.push("/");
+  };
+
   return (
-    <div>
-      <Button
-        variant="primary"
-        onClick={() => setShowModal(true)}
-        buttonText="Add Todo"
-      />
+    <>
+      <div className="d-flex justify-content-between">
+        <Button
+          variant="primary"
+          onClick={() => setShowModal(true)}
+          buttonText="Add Todo"
+        />
+        <div className="signout-text" onClick={handleSignout}>
+          Signout
+        </div>
+      </div>
       {showModal && (
         <TodoModal
+          heading={isEditAction() ? "Edit Todo" : "Add Todo"}
           showModal={showModal}
           onConfirm={isEditAction() ? handleEditTodo : handleAddTodo}
           onClose={handleCloseModal}
@@ -87,9 +118,20 @@ const TodoList = () => {
                 todos.length &&
                 todos.map((todo) => (
                   <tr key={todo.id}>
-                    <td>{todo.name}</td>
-                    <td>{todo.details}</td>
-                    <td>{todo.done}</td>
+                    <td>{todo.done ? <s>{todo.name}</s> : <>{todo.name}</>}</td>
+                    <td>
+                      {todo.done ? <s>{todo.details}</s> : <>{todo.details}</>}
+                    </td>
+                    <td>
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        value={todo.done ? "checked" : "unchecked"}
+                        id="flexCheckDefault"
+                        checked={todo.done}
+                        onChange={(e) => onCheckBoxClick(e, todo)}
+                      />
+                    </td>
                     <td>
                       <Button
                         variant="primary"
@@ -111,7 +153,7 @@ const TodoList = () => {
           </Table>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
