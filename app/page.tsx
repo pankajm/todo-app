@@ -1,8 +1,10 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { FieldValues, useForm } from "react-hook-form";
+import { FieldErrors, FieldValues, useForm } from "react-hook-form";
 import useStore from "../store";
+import LoginForm from "./components/LoginForm";
+import authService from "./services/authService";
 
 const Login = () => {
   const [error, setError] = useState("");
@@ -22,21 +24,18 @@ const Login = () => {
   const onSubmit = async (formData: FieldValues) => {
     if (error) setError("");
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          Authorization:
-            "Basic " + btoa(formData.username + ":" + formData.password),
-        },
-      });
-      const { data, error_message } = await response.json();
+      const payload = {
+        username: formData.username,
+        password: formData.password,
+      };
+      const { data, error_message } = await authService.login(payload);
       if (error_message) {
         return setError(error_message);
       }
       updateToken(data);
       router.push("/todolist");
     } catch (ex) {
-      // log error on remote logging service ex - sentry
+      // log error on remote logging service ex - sentry/bugsnag
       console.log("in exception", ex);
       console.log(ex);
     }
@@ -45,30 +44,11 @@ const Login = () => {
   return (
     <main>
       <form className="border-box" onSubmit={handleSubmit(onSubmit)}>
-        <h1 className="page-heading">Login Form</h1>
-        <input
-          className="input input-large"
-          type="text"
-          placeholder="Username"
-          {...register("username", { required: true })}
+        <LoginForm
+          formErrors={errors}
+          loginApiError={error}
+          register={register}
         />
-        {errors.username && (
-          <div className="text-danger">The name field is required</div>
-        )}
-
-        <input
-          className="input input-large"
-          type="password"
-          placeholder="Password"
-          {...register("password", { required: true })}
-        />
-        {errors.password && (
-          <div className="text-danger">The password field is required</div>
-        )}
-        <div className="text-danger">{error}</div>
-        <button type="submit" className="btn btn-primary btn-lg mt-5">
-          Submit
-        </button>
       </form>
     </main>
   );

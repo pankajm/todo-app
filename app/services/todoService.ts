@@ -1,6 +1,6 @@
 import { FieldValues } from "react-hook-form";
-
-const url = "/api/todo";
+import { URL } from "../constants";
+import HttpService from "./httpService";
 
 const getTodos = async (token: string) => {
   const config = {
@@ -9,9 +9,7 @@ const getTodos = async (token: string) => {
       Authorization: "Bearer " + token,
     },
   };
-  const response = await fetch(url, config);
-  const { data } = await response.json();
-  return data;
+  return HttpService(config);
 };
 
 const postTodo = async (newTodo: FieldValues, token: string) => {
@@ -22,9 +20,7 @@ const postTodo = async (newTodo: FieldValues, token: string) => {
     },
     body: JSON.stringify(newTodo),
   };
-  const response = await fetch(url, config);
-  const { data } = await response.json();
-  return data;
+  return HttpService(config);
 };
 
 const deleteTodo = async (todoId: string, token: string) => {
@@ -34,9 +30,8 @@ const deleteTodo = async (todoId: string, token: string) => {
       Authorization: "Bearer " + token,
     },
   };
-  const response = await fetch(`${url}/${todoId}`, config);
-  const { data } = await response.json();
-  return data;
+  const url = `${URL}/${todoId}`;
+  return HttpService(config, url);
 };
 
 const editTodo = async (todo: FieldValues, token: string) => {
@@ -47,9 +42,9 @@ const editTodo = async (todo: FieldValues, token: string) => {
     },
     body: JSON.stringify(todo),
   };
-  const response = await fetch(`${url}/${todo.id}`, config);
-  const { data } = await response.json();
-  return data;
+
+  const url = `${URL}/${todo.id}`;
+  return HttpService(config, url);
 };
 
 export default {
